@@ -37,7 +37,7 @@ git_client = connection.clients.get_git_client()
 repository = git_client.get_repository(
     project=PROJECT_NAME, repository_id=REPOSITORY_NAME
 )
-print(f"Exporting data from repository {respository.name}")
+print(f"Exporting data from repository {repository.name}")
 
 # If instead you want to get multiple repositories from multiple projects, you can modify using the following code below 
 # all_projects = git_client.get_projects()
@@ -114,13 +114,13 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
                 pull_request.url,
             ]
         )
-        if threads:
-            writer.writerow(["object"] + COMMENT_FIELDNAMES)
         threads = git_client.get_threads(
             project=PROJECT_NAME,
             repository_id=repository.id,
             pull_request_id=pull_request.pull_request_id,
         )
+        if threads:
+            writer.writerow(["object"] + COMMENT_FIELDNAMES)
         for thread in threads:
             for comment in thread.comments:
                 writer.writerow(
@@ -134,4 +134,4 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
                     ]
                 )
     num_pull_requests = len(pull_requests_search)
-    print("{num_pull_requests} pull requests exported into CSV file.")
+    print(f"{num_pull_requests} pull requests exported into CSV file.")
