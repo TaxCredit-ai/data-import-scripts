@@ -37,12 +37,12 @@ git_client = connection.clients.get_git_client()
 repository = git_client.get_repository(
     project=PROJECT_NAME, repository_id=REPOSITORY_NAME
 )
+print(f"Exporting data from repository {respository.name}")
 
-# If you instead wnat to get multiple repositories from multiple projects, you can use the following code below
+# If instead you want to get multiple repositories from multiple projects, you can modify using the following code below 
 # all_projects = git_client.get_projects()
 # for project in all_projects:
 #     print("Project:", project.name)
-#     # Get all repositories in the project
 #     repositories = git_client.get_repositories(project=project.name)
 #     for repository in repositories:
 #         print("\tRepository:", repository.name)
@@ -133,3 +133,5 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
                         comment.author.unique_name,
                     ]
                 )
+    num_pull_requests = len(pull_requests_search)
+    print("{num_pull_requests} pull requests exported into CSV file.")
