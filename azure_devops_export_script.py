@@ -49,28 +49,19 @@ print(f"Exporting data from repository {repository.name}")
 
 # A GitPullRequestSearchCriteria object is an optional parameter `get_pull_requests` that allows you to specify a search criteria against pull requests. This allows us to fetch merged pull requests.
 search_criteria = GitPullRequestSearchCriteria(
-    status="completed",
+    status=4, # Get PRs of all statuses: https://learn.microsoft.com/en-us/javascript/api/azure-devops-extension-api/pullrequeststatus
     # Filter pull requests by status (active, completed, abandoned)
     # creator_id="UserID",  # Filter pull requests created by a specific user (optional)
     # reviewer_id="UserID"  # Filter pull requests with a specific reviewer (optional)
 )
 
-# Fetch merged pull requests
-merged_pull_requests = git_client.get_pull_requests(
+# Fetch all pull requests
+all_pull_requests = git_client.get_pull_requests(
     project=PROJECT_NAME,
     repository_id=repository.id,
     search_criteria=search_criteria,  # Optional GitPullRequestSearchCriteria instance
     top=None,  # Optionally specify the maximum number of pull requests to retrieve
 )
-# Fetch open pull requests
-open_pull_requests = git_client.get_pull_requests(
-    project=PROJECT_NAME,
-    repository_id=repository.id,
-    search_criteria=None,  # defaults to searching for pull requests with "active" status
-    top=None,  # Optionally specify the maximum number of pull requests to retrieve
-)
-
-pull_requests_search = merged_pull_requests + open_pull_requests
 
 """
 Pull Request obj fields ['additional_properties', '_links', 'artifact_id', 'auto_complete_set_by', 'closed_by', 'closed_date', 'code_review_id', 'commits', 'completion_options', 'completion_queue_time', 'created_by', 'creation_date', 'description', 'fork_source', 'is_draft', 'labels', 'last_merge_commit', 'last_merge_source_commit', 'last_merge_target_commit', 'merge_failure_message', 'merge_failure_type', 'merge_id', 'merge_options', 'merge_status', 'pull_request_id', 'remote_url', 'repository', 'reviewers', 'source_ref_name', 'status', 'supports_iterations', 'target_ref_name', 'title', 'url', 'work_item_refs']
@@ -98,7 +89,7 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
     writer = csv.writer(csvfile)
     # Write header row
     writer.writerow(["object"] + PULL_REQUEST_FIELDNAMES)
-    for pull_request in pull_requests_search:
+    for pull_request in all_pull_requests:
         writer.writerow(
             ["pull_request"] +
             [
@@ -133,5 +124,5 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
                         comment.author.unique_name,
                     ]
                 )
-    num_pull_requests = len(pull_requests_search)
+    num_pull_requests = len(all_pull_requests)
     print(f"{num_pull_requests} pull requests exported into CSV file.")
