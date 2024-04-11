@@ -33,13 +33,7 @@ credentials = BasicAuthentication('', PERSONAL_ACCESS_TOKEN)
 connection = Connection(base_url=ORGANIZATION_URL, creds=credentials)
 git_client = connection.clients.get_git_client()
 
-# How to get specific repository that is attached specific project
-repository = git_client.get_repository(
-    project=PROJECT_NAME, repository_id=REPOSITORY_NAME
-)
-print(f"Exporting data from repository {repository.name}")
-
-# If instead you want to get multiple repositories from multiple projects, you can modify using the following code below 
+# Note: This script is intended for one reposistory. If you would like to fetch data from multiple repositories, you can easily modify using the following code below:
 # all_projects = git_client.get_projects()
 # for project in all_projects:
 #     print("Project:", project.name)
@@ -47,27 +41,42 @@ print(f"Exporting data from repository {repository.name}")
 #     for repository in repositories:
 #         print("\tRepository:", repository.name)
 
+# How to get specific repository that is attached specific project
+repository = git_client.get_repository(
+    project=PROJECT_NAME, repository_id=REPOSITORY_NAME
+)
+print(f"Exporting data from repository {repository.name}")
+
 # A GitPullRequestSearchCriteria object is an optional parameter `get_pull_requests` that allows you to specify a search criteria against pull requests. This allows us to fetch merged pull requests.
 search_criteria = GitPullRequestSearchCriteria(
-    status=4, # Get PRs of all statuses: https://learn.microsoft.com/en-us/javascript/api/azure-devops-extension-api/pullrequeststatus
-    # Filter pull requests by status (active, completed, abandoned)
+    status=4, # PullRequestStatus.All==4 ; Setting this fetches pull requests with any status: https://learn.microsoft.com/en-us/javascript/api/azure-devops-extension-api/pullrequeststatus
+    # Filter pull requests by status (non set, active, completed, abandoned, all)
     # creator_id="UserID",  # Filter pull requests created by a specific user (optional)
     # reviewer_id="UserID"  # Filter pull requests with a specific reviewer (optional)
 )
 
-# Fetch all pull requests
-all_pull_requests = git_client.get_pull_requests(
-    project=PROJECT_NAME,
-    repository_id=repository.id,
-    search_criteria=search_criteria,  # Optional GitPullRequestSearchCriteria instance
-    top=1000,  # Optionally specify the maximum number of pull requests to retrieve
-)
+all_pull_requests = []
+offset = 0  # initalize offset to be zer
+MAX_PAGE_SIZE = 100  # Maximum number of pull requests allowed for retrieval per page
 
-"""
-Pull Request obj fields ['additional_properties', '_links', 'artifact_id', 'auto_complete_set_by', 'closed_by', 'closed_date', 'code_review_id', 'commits', 'completion_options', 'completion_queue_time', 'created_by', 'creation_date', 'description', 'fork_source', 'is_draft', 'labels', 'last_merge_commit', 'last_merge_source_commit', 'last_merge_target_commit', 'merge_failure_message', 'merge_failure_type', 'merge_id', 'merge_options', 'merge_status', 'pull_request_id', 'remote_url', 'repository', 'reviewers', 'source_ref_name', 'status', 'supports_iterations', 'target_ref_name', 'title', 'url', 'work_item_refs']
-Thread obj fields ['additional_properties', '_links', 'comments', 'id', 'identities', 'is_deleted', 'last_updated_date', 'properties', 'published_date', 'status', 'thread_context', 'pull_request_thread_context']
-Comment obj fields ['additional_properties', '_links', 'author', 'comment_type', 'content', 'id', 'is_deleted', 'last_content_updated_date', 'last_updated_date', 'parent_comment_id', 'published_date', 'users_liked']
-"""
+# Retrieve pull requests in chunks ("pages") until all pull requests have been fetched
+while True:
+    pull_requests = git_client.get_pull_requests(
+        project=PROJECT_NAME,
+        repository_id=repository.id,
+        search_criteria=search_criteria,
+        top=MAX_PAGE_SIZE,
+        skip=offset
+    )
+    # Add the page of pull requests to the list
+    all_pull_requests.extend(pull_requests)
+
+    # Check if we are on the last page
+    if len(pull_requests) < MAX_PAGE_SIZE:
+        break  # Exit the loop if all pull requests have been fetched
+    else:
+        offset += MAX_PAGE_SIZE  # Increment the offset parameter for the next page
+
 
 # Fields that will appear in the output CSV file
 PULL_REQUEST_FIELDNAMES = [
@@ -87,9 +96,14 @@ COMMENT_FIELDNAMES = ["content", "published_date", "last_updated_date", "url", "
 # Open CSV file
 with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
     writer = csv.writer(csvfile)
+
     # Write header row
     writer.writerow(["object"] + PULL_REQUEST_FIELDNAMES)
+
     for pull_request in all_pull_requests:
+        # Pull Request obj fields ['additional_properties', '_links', 'artifact_id', 'auto_complete_set_by', 'closed_by', 'closed_date', 'code_review_id', 'commits', 'completion_options', 'completion_queue_time', 'created_by', 'creation_date', 'description', 'fork_source', 'is_draft', 'labels', 'last_merge_commit', 'last_merge_source_commit', 'last_merge_target_commit', 'merge_failure_message', 'merge_failure_type', 'merge_id', 'merge_options', 'merge_status', 'pull_request_id', 'remote_url', 'repository', 'reviewers', 'source_ref_name', 'status', 'supports_iterations', 'target_ref_name', 'title', 'url', 'work_item_refs']
+        # Thread obj fields ['additional_properties', '_links', 'comments', 'id', 'identities', 'is_deleted', 'last_updated_date', 'properties', 'published_date', 'status', 'thread_context', 'pull_request_thread_context']
+        # Comment obj fields ['additional_properties', '_links', 'author', 'comment_type', 'content', 'id', 'is_deleted', 'last_content_updated_date', 'last_updated_date', 'parent_comment_id', 'published_date', 'users_liked']
         writer.writerow(
             ["pull_request"] +
             [
