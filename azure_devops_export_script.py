@@ -60,7 +60,7 @@ all_pull_requests = git_client.get_pull_requests(
     project=PROJECT_NAME,
     repository_id=repository.id,
     search_criteria=search_criteria,  # Optional GitPullRequestSearchCriteria instance
-    top=None,  # Optionally specify the maximum number of pull requests to retrieve
+    top=1000,  # Optionally specify the maximum number of pull requests to retrieve
 )
 
 """
