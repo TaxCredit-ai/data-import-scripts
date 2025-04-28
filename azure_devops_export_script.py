@@ -3,13 +3,15 @@ This script downloads Pull Requests and comments from an Azure DevOps
 repository and writes them to a local CSV file.
 
 First, run:
-pip install azure-devops==6.0.0b4
+pip install azure-devops==7.1.0b4
 
 Then fill in the CONFIGURATION AND SETUP section below. This section will need
 to be unique for each repository you want to import.
 """
+
 from azure.devops.connection import Connection
 from msrest.authentication import BasicAuthentication
+from azure.devops.v7_1.git.models import GitPullRequestSearchCriteria
 import csv
 
 # CONFIGURATION AND SETUP:
