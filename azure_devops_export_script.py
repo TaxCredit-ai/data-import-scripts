@@ -8,10 +8,8 @@ pip install azure-devops==6.0.0b4
 Then fill in the CONFIGURATION AND SETUP section below. This section will need
 to be unique for each repository you want to import.
 """
-
 from azure.devops.connection import Connection
 from msrest.authentication import BasicAuthentication
-from azure.devops.v6_0.git.models import GitPullRequestSearchCriteria
 import csv
 
 # CONFIGURATION AND SETUP:
@@ -33,7 +31,7 @@ credentials = BasicAuthentication('', PERSONAL_ACCESS_TOKEN)
 connection = Connection(base_url=ORGANIZATION_URL, creds=credentials)
 git_client = connection.clients.get_git_client()
 
-# Note: This script is intended for one reposistory. If you would like to fetch data from multiple repositories, you can easily modify using the following code below:
+# Note: This script is intended for one repository. If you would like to fetch data from multiple repositories, you can easily modify using the following code below:
 # all_projects = git_client.get_projects()
 # for project in all_projects:
 #     print("Project:", project.name)
@@ -41,7 +39,7 @@ git_client = connection.clients.get_git_client()
 #     for repository in repositories:
 #         print("\tRepository:", repository.name)
 
-# How to get specific repository that is attached specific project
+# How to get a specific repository attached to a specific project
 repository = git_client.get_repository(
     project=PROJECT_NAME, repository_id=REPOSITORY_NAME
 )
@@ -56,7 +54,7 @@ search_criteria = GitPullRequestSearchCriteria(
 )
 
 all_pull_requests = []
-offset = 0  # initalize offset to be zer
+offset = 0  # initialize offset to be zero
 MAX_PAGE_SIZE = 100  # Maximum number of pull requests allowed for retrieval per page
 
 # Retrieve pull requests in chunks ("pages") until all pull requests have been fetched
@@ -81,17 +79,24 @@ while True:
 # Fields that will appear in the output CSV file
 PULL_REQUEST_FIELDNAMES = [
     "pull_request_id",
-    "merge_id",
     "title",
-    "status",
-    "merge_status",
-    "author",
-    "creation_date",
+    "source_ref_name",
     "closed_date",
+    "creation_date",
     "description",
     "url",
+    "author",
+    "status",
 ]
-COMMENT_FIELDNAMES = ["content", "published_date", "last_updated_date", "url", "author"]
+COMMENT_FIELDNAMES = [
+    "pull_request_id",
+    "content",
+    "published_date",
+    "last_updated_date",
+    "url",
+    "author",
+    "author_url",
+]
 
 # Open CSV file
 with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
@@ -108,15 +113,14 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
             ["pull_request"] +
             [
                 pull_request.pull_request_id,
-                pull_request.merge_id,
                 pull_request.title,
-                pull_request.status,
-                pull_request.merge_status,
-                pull_request.created_by.unique_name,
-                pull_request.creation_date,
+                pull_request.source_ref_name,
                 pull_request.closed_date,
+                pull_request.creation_date,
                 pull_request.description,
                 pull_request.url,
+                pull_request.created_by.unique_name,
+                pull_request.status,
             ]
         )
         threads = git_client.get_threads(
@@ -128,15 +132,19 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
             writer.writerow(["object"] + COMMENT_FIELDNAMES)
         for thread in threads:
             for comment in thread.comments:
-                writer.writerow(
-                    ["comment"] +
-                    [
-                        comment.content,
-                        comment.published_date,
-                        comment.last_updated_date,
-                        comment._links.additional_properties["self"]["href"],
-                        comment.author.unique_name,
-                    ]
-                )
+                # Only include comments made by users, ignore system-made comments
+                if comment.comment_type == "text":
+                    writer.writerow(
+                        ["comment"] +
+                        [
+                            pull_request.pull_request_id,
+                            comment.content,
+                            comment.published_date,
+                            comment.last_updated_date,
+                            comment._links.additional_properties["self"]["href"],
+                            comment.author.unique_name,
+                            comment.author.url,
+                        ]
+                    )
     num_pull_requests = len(all_pull_requests)
     print(f"{num_pull_requests} pull requests exported into CSV file.")
