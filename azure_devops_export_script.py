@@ -88,6 +88,7 @@ PULL_REQUEST_FIELDNAMES = [
     "description",
     "url",
     "author",
+    "is_draft",
     "status",
 ]
 COMMENT_FIELDNAMES = [
@@ -122,6 +123,7 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
                 pull_request.description,
                 pull_request.url,
                 pull_request.created_by.unique_name,
+                pull_request.is_draft,
                 pull_request.status,
             ]
         )
