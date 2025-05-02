@@ -99,6 +99,7 @@ COMMENT_FIELDNAMES = [
     "url",
     "author",
     "author_url",
+    "comment_type",
 ]
 
 # Open CSV file
@@ -136,8 +137,8 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
             writer.writerow(["object"] + COMMENT_FIELDNAMES)
         for thread in threads:
             for comment in thread.comments:
-                # Only include comments made by users, ignore system-made comments
-                if comment.comment_type == "text":
+                # Only include comments made by users or from changes in state
+                if comment.comment_type in ["system", "text"]:
                     writer.writerow(
                         ["comment"] +
                         [
@@ -148,6 +149,7 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
                             comment._links.additional_properties["self"]["href"],
                             comment.author.unique_name,
                             comment.author.url,
+                            comment.comment_type
                         ]
                     )
     num_pull_requests = len(all_pull_requests)
