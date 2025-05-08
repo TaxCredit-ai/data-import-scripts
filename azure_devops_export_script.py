@@ -105,9 +105,7 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
     writer.writerow(["object"] + PULL_REQUEST_FIELDNAMES)
 
     for pull_request in all_pull_requests:
-        # Pull Request obj fields ['additional_properties', '_links', 'artifact_id', 'auto_complete_set_by', 'closed_by', 'closed_date', 'code_review_id', 'commits', 'completion_options', 'completion_queue_time', 'created_by', 'creation_date', 'description', 'fork_source', 'is_draft', 'labels', 'last_merge_commit', 'last_merge_source_commit', 'last_merge_target_commit', 'merge_failure_message', 'merge_failure_type', 'merge_id', 'merge_options', 'merge_status', 'pull_request_id', 'remote_url', 'repository', 'reviewers', 'source_ref_name', 'status', 'supports_iterations', 'target_ref_name', 'title', 'url', 'work_item_refs']
-        # Thread obj fields ['additional_properties', '_links', 'comments', 'id', 'identities', 'is_deleted', 'last_updated_date', 'properties', 'published_date', 'status', 'thread_context', 'pull_request_thread_context']
-        # Comment obj fields ['additional_properties', '_links', 'author', 'comment_type', 'content', 'id', 'is_deleted', 'last_content_updated_date', 'last_updated_date', 'parent_comment_id', 'published_date', 'users_liked']
+        pull_request_url = f"{PULL_REQUEST_BASE_URL}/{pull_request.pull_request_id}"
         writer.writerow(
             ["pull_request"] +
             [
@@ -117,7 +115,7 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
                 pull_request.closed_date,
                 pull_request.creation_date,
                 pull_request.description,
-                f"{PULL_REQUEST_BASE_URL}/{pull_request.pull_request_id}",
+                pull_request_url,
                 pull_request.created_by.unique_name,
                 pull_request.is_draft,
                 pull_request.status,
@@ -141,9 +139,9 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
                             comment.content,
                             comment.published_date,
                             comment.last_updated_date,
-                            comment._links.additional_properties["self"]["href"],
+                            pull_request_url,  # Azure DevOps doesn't give us a comment URL
                             comment.author.unique_name,
-                            comment.author.url,
+                            pull_request_url,  # Azure DevOps doesn't give us an author URL
                             comment.comment_type
                         ]
                     )
