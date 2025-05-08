@@ -27,7 +27,9 @@ REPOSITORY_NAME = "..."
 LOCAL_OUTPUT_DIRECTORY = "/home/{MY_USER_ID}/Desktop/"
 # The full path of the local file you want the output written to
 LOCAL_OUTPUT_FILE = f"{LOCAL_OUTPUT_DIRECTORY}azure_devops_{REPOSITORY_NAME}_pull_requests.csv"
-# URL to build the pull request URL off of
+
+# CONSTANTS
+# URL to build the pull request URL off of. This is needed below and should not be manually edited
 PULL_REQUEST_BASE_URL = f"{ORGANIZATION_URL}{PROJECT_NAME}/_git/{REPOSITORY_NAME}/pullrequest"
 
 
