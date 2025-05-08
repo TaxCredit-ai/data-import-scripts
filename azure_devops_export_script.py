@@ -27,19 +27,14 @@ REPOSITORY_NAME = "..."
 LOCAL_OUTPUT_DIRECTORY = "/home/{MY_USER_ID}/Desktop/"
 # The full path of the local file you want the output written to
 LOCAL_OUTPUT_FILE = f"{LOCAL_OUTPUT_DIRECTORY}azure_devops_{REPOSITORY_NAME}_pull_requests.csv"
+# URL to build the pull request URL off of
+PULL_REQUEST_BASE_URL = f"{ORGANIZATION_URL}{PROJECT_NAME}/_git/{REPOSITORY_NAME}/pullrequest"
+
 
 # Connect to Azure DevOps
 credentials = BasicAuthentication('', PERSONAL_ACCESS_TOKEN)
 connection = Connection(base_url=ORGANIZATION_URL, creds=credentials)
 git_client = connection.clients.get_git_client()
-
-# Note: This script is intended for one repository. If you would like to fetch data from multiple repositories, you can easily modify using the following code below:
-# all_projects = git_client.get_projects()
-# for project in all_projects:
-#     print("Project:", project.name)
-#     repositories = git_client.get_repositories(project=project.name)
-#     for repository in repositories:
-#         print("\tRepository:", repository.name)
 
 # How to get a specific repository attached to a specific project
 repository = git_client.get_repository(
@@ -122,7 +117,7 @@ with open(LOCAL_OUTPUT_FILE, mode="w", encoding="utf-8") as csvfile:
                 pull_request.closed_date,
                 pull_request.creation_date,
                 pull_request.description,
-                pull_request.url,
+                f"{PULL_REQUEST_BASE_URL}/{pull_request.pull_request_id}",
                 pull_request.created_by.unique_name,
                 pull_request.is_draft,
                 pull_request.status,
