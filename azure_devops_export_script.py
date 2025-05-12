@@ -88,6 +88,7 @@ PULL_REQUEST_FIELDNAMES = [
     "is_draft",
     "status",
 ]
+
 COMMENT_FIELDNAMES = [
     "pull_request_id",
     "content",
