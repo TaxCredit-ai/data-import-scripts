@@ -34,6 +34,8 @@ LOCAL_OUTPUT_FILE = os.path.join(LOCAL_OUTPUT_DIRECTORY, f"azure_devops_{REPOSIT
 # URL to build the pull request URL off of. This is needed below and should not be manually edited
 PULL_REQUEST_BASE_URL = f"{ORGANIZATION_URL}{PROJECT_NAME}/_git/{REPOSITORY_NAME}/pullrequest"
 
+# Create output directory if it doesn't already exist
+os.makedirs(LOCAL_OUTPUT_DIRECTORY, exist_ok=True)
 
 # Connect to Azure DevOps
 credentials = BasicAuthentication('', PERSONAL_ACCESS_TOKEN)
