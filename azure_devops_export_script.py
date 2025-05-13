@@ -13,6 +13,7 @@ from azure.devops.connection import Connection
 from msrest.authentication import BasicAuthentication
 from azure.devops.v7_1.git.models import GitPullRequestSearchCriteria
 import csv
+import os
 
 # CONFIGURATION AND SETUP:
 # Customize this to wherever your Azure DevOps repos are hosted, e.g.
@@ -24,9 +25,10 @@ PERSONAL_ACCESS_TOKEN = "..."
 PROJECT_NAME = "..."
 REPOSITORY_NAME = "..."
 # Fill in the local directory you want the output CSV file to be written to
-LOCAL_OUTPUT_DIRECTORY = "/home/{MY_USER_ID}/Desktop/"
+LOCAL_OUTPUT_DIRECTORY = os.path.join("/home" ,"{MY_USER_ID}", "Desktop")
+
 # The full path of the local file you want the output written to
-LOCAL_OUTPUT_FILE = f"{LOCAL_OUTPUT_DIRECTORY}azure_devops_{REPOSITORY_NAME}_pull_requests.csv"
+LOCAL_OUTPUT_FILE = os.path.join(LOCAL_OUTPUT_DIRECTORY, f"azure_devops_{REPOSITORY_NAME}_pull_requests.csv")
 
 # CONSTANTS
 # URL to build the pull request URL off of. This is needed below and should not be manually edited
