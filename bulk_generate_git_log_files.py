@@ -4,13 +4,11 @@ import sys
 import subprocess
 
 # Parse command line arguments
-
 if len(sys.argv) != 3:
-    raise ValueError("Missing command line arguments. Both year and repository name file path must be provided")
+    raise ValueError("Missing command line arguments. Both year and repository info file path must be provided")
 year_str = sys.argv[1]
 repos_csv_path = sys.argv[2]
 
-# Parse the year
 try:
     year = int(year_str)
 except ValueError:
@@ -27,7 +25,6 @@ with open(repos_csv_path) as repos_file:
         org_name = row["Organization"].lower().strip()
         repo_name = row["Repository"].lower().strip()
         print(f"Processing {org_name}/{repo_name}")
-        # TODO: clone and move into the correct repo
         # Clone repo
         subprocess.run(["git", "clone", f"https://github.com/{org_name}/{repo_name}.git"])
         # Change to newly cloned repo
