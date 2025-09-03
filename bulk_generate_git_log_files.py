@@ -13,7 +13,7 @@ os.makedirs(LOCAL_OUTPUT_DIRECTORY, exist_ok=True)
 if len(sys.argv) != 3:
     raise ValueError("Missing command line arguments. Both year and repository name file path must be provided")
 year_str = sys.argv[1]
-repo_csv_path = sys.argv[2]
+repos_csv_path = sys.argv[2]
 
 # Parse the year
 try:
@@ -27,11 +27,12 @@ GIT_LOG_COMMAND = f"git log --remotes --pretty=medium --no-color --date=default 
 
 # TODO: temporarily clone the repo
 
-with open(repo_csv_path) as f:
-    reader = csv.DictReader(f)
+with open(repos_csv_path) as repos_file:
+    reader = csv.DictReader(repos_file)
     for row in reader:
-        repo_name = row["Repository Name"].lower()
-        print(repo_name)
+        org_name = row["Organization"].lower().strip()
+        repo_name = row["Repository"].lower().strip()
+        print(f"Processing {org_name}/{repo_name}")
         # TODO: clone and move into the correct repo
         output_file_path = f"{repo_name}_git_log_{year}_01_01-{year}_12_31.txt"
         with open(output_file_path, "w") as output_file:
