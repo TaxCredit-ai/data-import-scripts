@@ -14,10 +14,6 @@ Instructions for using this script
    If you want commits from 2024 and the path to the repository information csv is "repo_names.csv" the command
    would be python bulk_generate_git_log_files.py 2024 repo_names.csv
 """
-
-
-
-
 import os
 import csv
 import sys
