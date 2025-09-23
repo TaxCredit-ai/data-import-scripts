@@ -30,7 +30,7 @@ try:
 except ValueError:
     raise ValueError("Invalid year given")
 
-GIT_LOG_COMMAND = f"git log --remotes --pretty=medium --no-color --date=default --stat --after='{year - 1}-12-31' --before='{year + 1}-01-01'"
+GIT_LOG_COMMAND = f"git log --all --pretty=medium --no-color --date=default --stat --after='{year - 1}-12-31' --before='{year + 1}-01-01'"
 GIT_LOG_COMMAND_SPLIT = GIT_LOG_COMMAND.split(" ")
 
 os.makedirs(f"{os.getcwd()}/git_log_files", exist_ok=True)
@@ -40,11 +40,12 @@ with open(repos_csv_path) as repos_file:
     for row in reader:
         org_name = row["Organization"].lower().strip()
         repo_name = row["Repository"].lower().strip()
+        folder_name = repo_name + ".git"
         print(f"Processing {org_name}/{repo_name}")
         # Clone repo
-        subprocess.run(["git", "clone", f"https://github.com/{org_name}/{repo_name}.git"])
+        subprocess.run(["git", "clone", "--bare", f"https://github.com/{org_name}/{repo_name}.git"])
         # Change to newly cloned repo
-        os.chdir(repo_name)
+        os.chdir(folder_name)
         # Generate the git log file and save it
         output_file_path = f"../git_log_files/{repo_name}_git_log_{year}_01_01-{year}_12_31.txt"
         with open(output_file_path, "w") as output_file:
@@ -52,5 +53,5 @@ with open(repos_csv_path) as repos_file:
         # Change back to parent directory
         os.chdir("..")
         # Delete the cloned repo
-        subprocess.run(["rm", "-rf", repo_name])
+        subprocess.run(["rm", "-rf", folder_name])
 
