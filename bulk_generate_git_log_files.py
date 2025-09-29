@@ -43,7 +43,7 @@ with open(repos_csv_path) as repos_file:
         folder_name = repo_name + ".git"
         print(f"Processing {org_name}/{repo_name}")
         # Clone repo
-        subprocess.run(["git", "clone", "--bare", f"https://github.com/{org_name}/{repo_name}.git"])
+        subprocess.run(["git", "clone", "--bare", f"git@github.com:{org_name}/{repo_name}.git"])
         # Change to newly cloned repo
         os.chdir(folder_name)
         # Generate the git log file and save it
@@ -54,4 +54,3 @@ with open(repos_csv_path) as repos_file:
         os.chdir("..")
         # Delete the cloned repo
         subprocess.run(["rm", "-rf", folder_name])
-
