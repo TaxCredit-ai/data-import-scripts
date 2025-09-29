@@ -1,13 +1,13 @@
 """
-Instructions for using this script
-1. Create a csv containing the information on all repositories you with to generate log files for. This csv
-   must have two columns, Organization and Repository. Organization should be the GitHub organization that owns the
-   repository and Repository should be the repository name. An example csv for the repositories
-   https://github.com/django/django-asv and https://github.com/django/code-of-conduct would be:
-   Organization | Repository
-   django, django-asv
-   django, code-of-conduct
-2. If you have not already, set up GitHub authentication on your computer. Instructions can be found here:
+Instructions for generating Git logs from repositories hosted anywhere
+1. Create a CSV containing a list of all repositories you with to generate log files for. This CSV
+   must have three column headers: GitHub Org, GitHub Repository, and Non-GitHub Git clone URL.
+   For repos on GitHub, fill in only the first two columns; for repos on other Git hosting
+   platforms like GitLab and Azure DevOps, fill in only the third column.
+   For example, for the GitHub repository https://github.com/django/django-asv, the GitHub Org is
+   "django", and the GitHub Repository is "django-asv".
+2. If you're downloading repos from GitHub, set up GitHub authentication on your computer.
+   Instructions can be found here:
    https://docs.github.com/en/get-started/git-basics/caching-your-github-credentials-in-git
 3. Open a terminal, navigate to the directory containing this script, and run it as follows:
    python bulk_generate_git_log_files.py {year} {path_to_repository_csv}
@@ -38,12 +38,24 @@ os.makedirs(f"{os.getcwd()}/git_log_files", exist_ok=True)
 with open(repos_csv_path) as repos_file:
     reader = csv.DictReader(repos_file)
     for row in reader:
-        org_name = row["Organization"].lower().strip()
-        repo_name = row["Repository"].lower().strip()
+        org_name = row["GitHub Org"].strip()
+        repo_name = row["GitHub Repository"].lower().strip()
+        clone_url = row["Non-GitHub Git clone URL"].strip()
+
+        # Handle a GitHub repo
+        if org_name != "" and repo_name != "":
+            print(f"\nAttempting to download {org_name}/{repo_name} from GitHub")
+            clone_url = f"git@github.com:{org_name}/{repo_name}.git"
+
+        # Handle a repo hosted not on GitHub (e.g. on GitLab or Azure DevOps)
+        elif clone_url != "":
+            print(f"\nAttempting to download {clone_url}")
+            repo_name = clone_url.split("/")[-1].split(".git")[0]
+            print(f"repo_name = {repo_name}")
+
         folder_name = repo_name + ".git"
-        print(f"Processing {org_name}/{repo_name}")
         # Clone repo
-        subprocess.run(["git", "clone", "--bare", f"git@github.com:{org_name}/{repo_name}.git"])
+        subprocess.run(["git", "clone", "--bare", clone_url])
         # Change to newly cloned repo
         os.chdir(folder_name)
         # Generate the git log file and save it
