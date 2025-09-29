@@ -10,27 +10,39 @@ Instructions for generating Git logs from repositories hosted anywhere
    Instructions can be found here:
    https://docs.github.com/en/get-started/git-basics/caching-your-github-credentials-in-git
 3. Open a terminal, navigate to the directory containing this script, and run it as follows:
-   python bulk_generate_git_log_files.py {year} {path_to_repository_csv}
-   If you want commits from 2024 and the path to the repository information csv is "repo_names.csv" the command
-   would be python bulk_generate_git_log_files.py 2024 repo_names.csv
+   python bulk_generate_git_log_files.py {path_to_repository_list_csv} {start_date} {end_date}
+   For example, if you want commits from calendar year 2024 and the path to the repository
+   information csv is "repo_names.csv" the command would be:
+   python bulk_generate_git_log_files.py repo_names.csv 01/01/2024 12/31/2024
 """
 import os
 import csv
 import sys
 import subprocess
+from datetime import timedelta
+from dateutil.parser import parse
+
 
 # Parse command line arguments
-if len(sys.argv) != 3:
-    raise ValueError("Missing command line arguments. Both year and repository info file path must be provided")
-year_str = sys.argv[1]
-repos_csv_path = sys.argv[2]
-
+if len(sys.argv) != 4:
+    raise ValueError("Missing command line arguments. Make sure to include the path to the repo "
+                     "list, the start date, and the end date.")
+repos_csv_path = sys.argv[1]
 try:
-    year = int(year_str)
+    start_date = parse(sys.argv[2])
+    end_date = parse(sys.argv[3])
 except ValueError:
-    raise ValueError("Invalid year given")
+    raise ValueError("Invalid dates given")
+try:
+    assert end_date > start_date
+except AssertionError:
+    raise ValueError(f"End date ({end_date}) must be later than start date ({start_date})")
 
-GIT_LOG_COMMAND = f"git log --all --pretty=medium --no-color --date=default --stat --after='{year - 1}-12-31' --before='{year + 1}-01-01'"
+after_date = (start_date - timedelta(days=1)).strftime("%Y-%m-%d")
+before_date = (end_date + timedelta(days=1)).strftime("%Y-%m-%d")
+GIT_LOG_COMMAND = (f"git log --all --pretty=medium --no-color --date=default --stat "
+                   f"--after='{after_date}' --before='{before_date}'")
+print(GIT_LOG_COMMAND)
 GIT_LOG_COMMAND_SPLIT = GIT_LOG_COMMAND.split(" ")
 
 os.makedirs(f"{os.getcwd()}/git_log_files", exist_ok=True)
@@ -59,7 +71,9 @@ with open(repos_csv_path) as repos_file:
         # Change to newly cloned repo
         os.chdir(folder_name)
         # Generate the git log file and save it
-        output_file_path = f"../git_log_files/{repo_name}_git_log_{year}_01_01-{year}_12_31.txt"
+        output_file_path = (f"../git_log_files/{repo_name}_git_log_"
+                            f"{start_date.strftime('%Y-%m-%d')}-"
+                            f"{end_date.strftime('%Y-%m-%d')}.txt")
         with open(output_file_path, "w") as output_file:
             subprocess.run(GIT_LOG_COMMAND_SPLIT, stdout=output_file)
         # Change back to parent directory
