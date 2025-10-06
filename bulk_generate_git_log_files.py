@@ -18,6 +18,7 @@ Instructions for generating Git logs from repositories hosted anywhere
 import os
 import csv
 import sys
+import shutil
 import subprocess
 from datetime import timedelta
 from dateutil.parser import parse
@@ -79,4 +80,4 @@ with open(repos_csv_path) as repos_file:
         # Change back to parent directory
         os.chdir("..")
         # Delete the cloned repo
-        subprocess.run(["rm", "-rf", folder_name])
+        shutil.rmtree(folder_name)
