@@ -43,7 +43,6 @@ after_date = (start_date - timedelta(days=1)).strftime("%Y-%m-%d")
 before_date = (end_date + timedelta(days=1)).strftime("%Y-%m-%d")
 GIT_LOG_COMMAND = (f"git log --all --pretty=medium --no-color --date=default --stat "
                    f"--after='{after_date}' --before='{before_date}'")
-print(GIT_LOG_COMMAND)
 GIT_LOG_COMMAND_SPLIT = GIT_LOG_COMMAND.split(" ")
 
 os.makedirs(f"{os.getcwd()}/git_log_files", exist_ok=True)
