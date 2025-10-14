@@ -47,6 +47,17 @@ GIT_LOG_COMMAND_SPLIT = GIT_LOG_COMMAND.split(" ")
 
 os.makedirs(f"{os.getcwd()}/git_log_files", exist_ok=True)
 
+
+def rmtree_on_error(func, path, exc_info):
+    # Windows error handler, based on https://stackoverflow.com/a/2656405
+    import stat
+    if not os.access(path, os.W_OK):
+        os.chmod(path, stat.S_IWUSR)
+        func(path)
+    else:
+        raise
+
+
 with open(repos_csv_path) as repos_file:
     reader = csv.DictReader(repos_file)
     for row in reader:
@@ -79,4 +90,4 @@ with open(repos_csv_path) as repos_file:
         # Change back to parent directory
         os.chdir("..")
         # Delete the cloned repo
-        shutil.rmtree(folder_name)
+        shutil.rmtree(folder_name, onerror=rmtree_on_error)
