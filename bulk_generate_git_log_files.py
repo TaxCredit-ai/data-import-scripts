@@ -1,6 +1,6 @@
 """
 Instructions for generating Git logs from repositories hosted anywhere
-1. Create a CSV containing a list of all repositories you with to generate log files for. This CSV
+1. Create a CSV containing a list of all repositories you wish to generate log files for. This CSV
    must have three column headers: GitHub Org, GitHub Repository, and Non-GitHub Git clone URL.
    For repos on GitHub, fill in only the first two columns; for repos on other Git hosting
    platforms like GitLab and Azure DevOps, fill in only the third column.
